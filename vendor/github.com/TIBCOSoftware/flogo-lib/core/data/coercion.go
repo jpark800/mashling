@@ -65,7 +65,13 @@ func CoerceToString(val interface{}) (string, error) {
 		}
 		return string(b), nil
 	default:
-		return "", fmt.Errorf("Unable to Coerce %#v to string", t)
+		b, err := json.Marshal(t)
+		if err != nil {
+			return "", fmt.Errorf("Unable to Coerce %#v to string", t)
+		}
+		return string(b), nil
+
+		//return "", fmt.Errorf("Unable to Coerce %#v to string", t)
 	}
 }
 
@@ -362,7 +368,7 @@ func (h *MapHelper) GetBool(data map[string]interface{}, key string) (bool, bool
 	return false, false
 }
 
-func (h *MapHelper) ToAttributes(data map[string]interface{}, metadata map[string]*Attribute, ignoreExtras bool) []*Attribute {
+func (h *MapHelper) ToAttributes(data map[string]interface{}, metadata []*Attribute, ignoreExtras bool) []*Attribute {
 
 	size := len(metadata)
 	if !ignoreExtras {
@@ -370,9 +376,14 @@ func (h *MapHelper) ToAttributes(data map[string]interface{}, metadata map[strin
 	}
 	attrs := make([]*Attribute, 0, size)
 
+	metadataMap := make(map[string]*Attribute)
+	for _, attr := range metadata {
+		metadataMap[attr.Name] = attr
+	}
+
 	//todo do special handling for complex_object metadata (merge or ref it)
 	for key, value := range data {
-		mdAttr, exists := metadata[key]
+		mdAttr, exists := metadataMap[key]
 
 		if !exists {
 			if !ignoreExtras {

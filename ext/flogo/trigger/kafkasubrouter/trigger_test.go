@@ -130,8 +130,8 @@ func (tr *TestRunner) Run(context context.Context, action action.Action, uri str
 }
 
 //Run the specified Action
-func (tr *TestRunner) RunAction(context context.Context, actionID string, inputGenerator action.InputGenerator, options map[string]interface{}) (results map[string]interface{}, err error) {
-	log.Printf("RuAction called with actionID: %s", actionID)
+func (tr *TestRunner) RunAction(context context.Context, action action.Action, options map[string]interface{}) (results map[string]interface{}, err error) {
+	log.Printf("RuAction called with actionID: %s", action.Metadata().ID)
 	return nil, nil
 }
 

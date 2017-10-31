@@ -59,9 +59,9 @@ func (tr *TestRunner) Run(context context.Context, action action.Action, uri str
 	return 0, nil, nil
 }
 
-func (tr *TestRunner) RunAction(context context.Context, actionID string, inputGenerator action.InputGenerator,
+func (tr *TestRunner) RunAction(context context.Context, action action.Action,
 	options map[string]interface{}) (results map[string]interface{}, err error) {
-	tr.t.Logf("Ran Action: %v", actionID)
+	tr.t.Logf("Ran Action: %v", action.Metadata().ID)
 	return nil, nil
 }
 

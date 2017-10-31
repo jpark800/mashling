@@ -20,22 +20,22 @@
   version = "v1.0.3"
 
 [[projects]]
+  branch = "master"
   name = "github.com/TIBCOSoftware/flogo-cli"
   packages = ["app","cli","env","util"]
   revision = "034384db0f5ccfb6ec31b4143cfa2e15baa47cad"
-  version = "v0.4.1"
 
 [[projects]]
+  branch = "master"
   name = "github.com/TIBCOSoftware/flogo-contrib"
   packages = ["action/flow/definition","action/flow/model","action/flow/support","action/flow/test","trigger/rest/cors"]
-  revision = "c677fc457d239cdab3f0392f1d6829e33444fe1e"
-  version = "v0.4.1"
+  revision = "fdb0d07bbedd5e7bb2689fedfad1aae2c2ec5f6e"
 
 [[projects]]
+  branch = "master"
   name = "github.com/TIBCOSoftware/flogo-lib"
-  packages = ["app","config","core/action","core/activity","core/data","core/expr","core/property","core/trigger","logger","util"]
-  revision = "52e50da7cdbe38eada4b1449992a296c48ae2349"
-  version = "v0.4.1"
+  packages = ["app","config","core/action","core/activity","core/data","core/mapper","core/trigger","logger","util"]
+  revision = "d362720d613d16f63f6e2fb6e7fa85a44acc894b"
 
 [[projects]]
   name = "github.com/apache/thrift"
@@ -82,8 +82,8 @@
 [[projects]]
   name = "github.com/gogo/protobuf"
   packages = ["io","proto"]
-  revision = "100ba4e885062801d56799d78530b73b178a78f3"
-  version = "v0.4"
+  revision = "342cbe0a04158f6dcb03ca0079991a51a4248c02"
+  version = "v0.5"
 
 [[projects]]
   branch = "master"
@@ -244,6 +244,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "e89fee2464a15701403fec7de5aae92ad567f6096a517bf73f725900a844f56a"
+  inputs-digest = "fd3ff26bae1da8a46b22a74fbaad2d810a9d3761ec5f1416ac6ff4bfbb5c4c77"
   solver-name = "gps-cdcl"
   solver-version = 1
