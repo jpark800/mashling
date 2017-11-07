@@ -2,7 +2,7 @@
 * Copyright © 2017. TIBCO Software Inc.
 * This file is subject to the license terms contained
 * in the license file that is distributed with this file.
-*/
+ */
 package app
 
 import (
@@ -27,10 +27,13 @@ Options:
     -s       the api secret key (required)
     -u       username (required)
     -p       password (required)
-    -portal  the portal (required)
-    -uuid    the proxy uuid (required)
+    -areaDomain  the public domain of the Mashery gateway (required)
+    -areaId    the Mashery area id  (required)
     -h       the publicly available hostname where this mashling will be deployed (required)
+	-iodocs  true to create iodocs,  (default is false)
+	-testplan  true to create package, plan and test app/key,  (default is false)	
     -mock    true to mock, where it will simply display the transformed swagger doc; false to actually publish to Mashery (default is false)
+    -apitemplate	json file that contains defaults for api/endpoint settings in mashery
  `,
 }
 
@@ -39,16 +42,19 @@ func init() {
 }
 
 type cmdPublish struct {
-	option    *cli.OptionInfo
-	fileName  string
-	apiKey    string
-	apiSecret string
-	username  string
-	password  string
-	uuid      string
-	portal    string
-	mock      string
-	host      string
+	option      *cli.OptionInfo
+	fileName    string
+	apiKey      string
+	apiSecret   string
+	username    string
+	password    string
+	areaId      string
+	areaDomain  string
+	mock        string
+	host        string
+	iodocs      string
+	testplan    string
+	apiTemplate string
 }
 
 // HasOptionInfo implementation of cli.HasOptionInfo.OptionInfo
@@ -62,19 +68,21 @@ func (c *cmdPublish) AddFlags(fs *flag.FlagSet) {
 	fs.StringVar(&(c.apiSecret), "s", "", "api secret")
 	fs.StringVar(&(c.username), "u", "", "username")
 	fs.StringVar(&(c.password), "p", "", "password")
-	fs.StringVar(&(c.uuid), "uuid", "", "uuid")
-	fs.StringVar(&(c.portal), "portal", "", "portal")
+	fs.StringVar(&(c.areaId), "areaId", "", "areaId")
+	fs.StringVar(&(c.areaDomain), "areaDomain", "", "areaDomain")
 	fs.StringVar(&(c.fileName), "f", "mashling.json", "gateway app file")
 	fs.StringVar(&(c.mock), "mock", "false", "mock")
+	fs.StringVar(&(c.iodocs), "iodocs", "false", "iodocs")
+	fs.StringVar(&(c.testplan), "testplan", "false", "testplan")
+	fs.StringVar(&(c.apiTemplate), "apitemplate", "", "api template file")
 	fs.StringVar(&(c.host), "h", "", "the publicly available hostname where this mashling will be deployed")
-
 }
 
 // Exec implementation of cli.Command.Exec
 func (c *cmdPublish) Exec(args []string) error {
 	if c.apiKey == "" || c.apiSecret == "" || c.username == "" || c.password == "" ||
-		c.uuid == "" || c.portal == "" {
-		return errors.New("Error: api key and api secret keys are required")
+		c.areaId == "" || c.areaDomain == "" {
+		return errors.New("Error: api key, api secret, username, password, areaId and areaDomain are required")
 	}
 
 	if c.host == "" {
@@ -89,10 +97,23 @@ func (c *cmdPublish) Exec(args []string) error {
 
 	gatewayJSON, _, err := GetGatewayJSON(c.fileName)
 
-	user := ApiUser{c.username, c.password, c.apiKey, c.apiSecret, c.uuid, c.portal}
+	var apiTemplateJSON string
+	if c.apiTemplate != "" {
+		apiTemplateJSON, _, err = GetGatewayJSON(c.apiTemplate)
+	}
+
+	user := ApiUser{c.username, c.password, c.apiKey, c.apiSecret, c.areaId, c.areaDomain}
 	b, err := strconv.ParseBool(c.mock)
 	if err != nil {
 		panic("Invalid option for -mock")
 	}
-	return PublishToMashery(&user, currentDir, gatewayJSON, c.host, b)
+	d, err := strconv.ParseBool(c.iodocs)
+	if err != nil {
+		panic("Invalid option for -iodocs")
+	}
+	e, err := strconv.ParseBool(c.testplan)
+	if err != nil {
+		panic("Invalid option for -testplan")
+	}
+	return PublishToMashery(&user, currentDir, gatewayJSON, c.host, b, d, e, apiTemplateJSON)
 }
