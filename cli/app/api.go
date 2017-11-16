@@ -432,15 +432,13 @@ func PublishToMashery(user *ApiUser, appDir string, gatewayJSON string, host str
 		return err
 	}
 
-	// Delay to avoid hitting QPS limit
-	delayMilli(500)
-
 	token, err := user.FetchOAuthToken()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: Unable to fetch the OAauth token\n\n")
 		return err
 	}
 
+	// Delay to avoid hitting QPS limit
 	delayMilli(500)
 
 	mApi, err := TransformSwagger(user, string(swaggerDoc), "swagger2", "masheryapi", token)
@@ -449,11 +447,15 @@ func PublishToMashery(user *ApiUser, appDir string, gatewayJSON string, host str
 		return err
 	}
 
+	delayMilli(500)
+
 	mIodoc, err := TransformSwagger(user, string(swaggerDoc), "swagger2", "iodocsv1", token)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: Unable to transform swagger to mashery iodocs\n\n")
 		return err
 	}
+
+	delayMilli(500)
 
 	templApi, templEndpoint, templPackage, templPlan := BuildMasheryTemplates(apiTemplateJSON)
 	if mock == false {
