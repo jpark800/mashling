@@ -610,11 +610,13 @@ func MapToByteArray(mapToConvert map[string]interface{}) []byte {
 func CreateOrUpdateApi(user *ApiUser, token string, cleanedTfApiSwaggerDoc []byte, mApi map[string]interface{}) (string, string, []interface{}, bool) {
 	updated := false
 
+	masheryObject := "services"
+	masheryObjectProperties := "id,name,endpoints.id,endpoints.name,endpoints.inboundSslRequired,endpoints.outboundRequestTargetPath,endpoints.outboundTransportProtocol,endpoints.publicDomains,endpoints.requestAuthenticationType,endpoints.requestPathAlias,endpoints.requestProtocol,endpoints.supportedHttpMethods,endoints.systemDomains,endpoints.trafficManagerDomain"
 	var apiId string
 	var apiName string
 	var endpoints [](interface{})
-	//f
-	api, err := user.Read("services", "name:"+mApi["name"].(string), "id,name,endpoints.id,endpoints.name,endpoints.inboundSslRequired,endpoints.outboundRequestTargetPath,endpoints.outboundTransportProtocol,endpoints.publicDomains,endpoints.requestAuthenticationType,endpoints.requestPathAlias,endpoints.requestProtocol,endpoints.supportedHttpMethods,endoints.systemDomains,endpoints.trafficManagerDomain", token)
+
+	api, err := user.Read(masheryObject, "name:"+mApi["name"].(string), masheryObjectProperties, token)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: Unable to fetch api\n\n")
 		panic(err)
@@ -625,7 +627,7 @@ func CreateOrUpdateApi(user *ApiUser, token string, cleanedTfApiSwaggerDoc []byt
 		panic(err)
 	}
 	if len(f) == 0 {
-		s, err := user.Create("services", "id,name,endpoints.id,endpoints.name,endpoints.inboundSslRequired,endpoints.outboundRequestTargetPath,endpoints.outboundTransportProtocol,endpoints.publicDomains,endpoints.requestAuthenticationType,endpoints.requestPathAlias,endpoints.requestProtocol,endpoints.supportedHttpMethods,endoints.systemDomains,endpoints.trafficManagerDomain", string(cleanedTfApiSwaggerDoc), token)
+		s, err := user.Create(masheryObject, masheryObjectProperties, string(cleanedTfApiSwaggerDoc), token)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error: Unable to create the api %s\n\n", s)
 			fmt.Errorf("%v", err)
@@ -643,7 +645,7 @@ func CreateOrUpdateApi(user *ApiUser, token string, cleanedTfApiSwaggerDoc []byt
 			panic(err)
 		}
 		serviceId := merged["id"].(string)
-		s, err := user.Update("services/"+serviceId, "id,name,endpoints.id,endpoints.name,endpoints.inboundSslRequired,endpoints.outboundRequestTargetPath,endpoints.outboundTransportProtocol,endpoints.publicDomains,endpoints.requestAuthenticationType,endpoints.requestPathAlias,endpoints.requestProtocol,endpoints.supportedHttpMethods,endoints.systemDomains,endpoints.trafficManagerDomain", string(mergedDoc), token)
+		s, err := user.Update(masheryObject+"/"+serviceId, masheryObjectProperties, string(mergedDoc), token)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error: Unable to update the api %s\n\n", s)
 			fmt.Errorf("%v", err)
@@ -721,14 +723,28 @@ func mapify(i interface{}) (map[string]interface{}, bool) {
 }
 
 func CreateOrUpdateIodocs(user *ApiUser, token string, cleanedTfIodocSwaggerDoc []byte, apiId string, updated bool) {
-	if !updated {
-		s, err := user.Create("iodocs/services", "id", string(cleanedTfIodocSwaggerDoc), token)
+	masheryObject := "iodocs/services"
+	masheryObjectProperties := "id"
+
+	item, err := user.Read(masheryObject, "serviceId:"+apiId, masheryObjectProperties, token)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: Unable to fetch iodocs\n\n")
+		panic(err)
+	}
+
+	var f [](interface{})
+	if err = json.Unmarshal([]byte(item), &f); err != nil {
+		panic(err)
+	}
+
+	if len(f) == 0 {
+		s, err := user.Create(masheryObject, masheryObjectProperties, string(cleanedTfIodocSwaggerDoc), token)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error: Unable to create the iodocs %s\n\n", s)
 			fmt.Errorf("%v", err)
 		}
 	} else {
-		s, err := user.Update("iodocs/services/"+apiId, "id", string(cleanedTfIodocSwaggerDoc), token)
+		s, err := user.Update(masheryObject+"/"+apiId, masheryObjectProperties, string(cleanedTfIodocSwaggerDoc), token)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error: Unable to create the iodocs %s\n\n", s)
 			fmt.Errorf("%v", err)
@@ -738,30 +754,30 @@ func CreateOrUpdateIodocs(user *ApiUser, token string, cleanedTfIodocSwaggerDoc 
 
 func CreateOrUpdatePackage(user *ApiUser, token string, packagePlanDoc []byte, apiName string, updated bool) string {
 	var p string
-	if !updated {
-		p, err := user.Create("packages", "id,name,plans.id,plans.name", string(packagePlanDoc), token)
+	masheryObject := "packages"
+	masheryObjectProperties := "id,name,plans.id,plans.name"
+
+	item, err := user.Read(masheryObject, "name:"+apiName, masheryObjectProperties, token)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: Unable to fetch package\n\n")
+		panic(err)
+	}
+
+	var f [](interface{})
+	if err = json.Unmarshal([]byte(item), &f); err != nil {
+		panic(err)
+	}
+
+	if len(f) == 0 {
+		p, err = user.Create(masheryObject, masheryObjectProperties, string(packagePlanDoc), token)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error: Unable to create the package %s\n\n", p)
 			fmt.Errorf("%v", err)
-			//return err
 			panic(err)
 		}
 	} else {
-		//var packageId string
-		packagePlan, err := user.Read("packages", "name:"+apiName, "id,name,plans.id,plans.name,plans.services", token)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: Unable to fetch package\n\n")
-			panic(err)
-		}
-		var f [](interface{})
-		if err = json.Unmarshal([]byte(packagePlan), &f); err != nil {
-			panic(err)
-		}
 
 		m := f[0].(map[string]interface{})
-		//if err = json.Unmarshal([]byte(api), &m); err != nil {
-		//	panic(err)
-		//}
 
 		var m1 map[string]interface{}
 		json.Unmarshal(packagePlanDoc, &m1)
@@ -771,7 +787,7 @@ func CreateOrUpdatePackage(user *ApiUser, token string, packagePlanDoc []byte, a
 			panic(err)
 		}
 		packageId := merged["id"].(string)
-		p, err = user.Update("packages/"+packageId, "id,name,plans.id,plans.name", string(mergedDoc), token)
+		p, err = user.Update(masheryObject+"/"+packageId, masheryObjectProperties, string(mergedDoc), token)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error: Unable to update the package %s\n\n", p)
 			fmt.Errorf("%v", err)
