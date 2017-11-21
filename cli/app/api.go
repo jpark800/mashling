@@ -439,7 +439,7 @@ func PublishToMashery(user *ApiUser, appDir string, gatewayJSON string, host str
 	}
 
 	// Delay to avoid hitting QPS limit
-	delayMilli(500)
+	shortDelay()
 
 	mApi, err := TransformSwagger(user, string(swaggerDoc), "swagger2", "masheryapi", token)
 	if err != nil {
@@ -447,7 +447,7 @@ func PublishToMashery(user *ApiUser, appDir string, gatewayJSON string, host str
 		return err
 	}
 
-	delayMilli(500)
+	shortDelay()
 
 	mIodoc, err := TransformSwagger(user, string(swaggerDoc), "swagger2", "iodocsv1", token)
 	if err != nil {
@@ -455,7 +455,7 @@ func PublishToMashery(user *ApiUser, appDir string, gatewayJSON string, host str
 		return err
 	}
 
-	delayMilli(500)
+	shortDelay()
 
 	templApi, templEndpoint, templPackage, templPlan := BuildMasheryTemplates(apiTemplateJSON)
 	if mock == false {
@@ -469,14 +469,13 @@ func PublishToMashery(user *ApiUser, appDir string, gatewayJSON string, host str
 			cleanedTfIodocSwaggerDoc := UpdateIodocsDataWithApi(MapToByteArray(mIodoc), apiId)
 
 			CreateOrUpdateIodocs(user, token, cleanedTfIodocSwaggerDoc, apiId, updated)
-
+			shortDelay()
 		}
 
 		var key string
 		if testplan == true {
 
 			packagePlanDoc := CreatePackagePlanDataFromApi(apiId, apiName, endpoints)
-
 			packagePlanDoc = UpdatePackageWithDefaults(packagePlanDoc, templPackage, templPlan)
 			var marshalledDoc []byte
 			marshalledDoc, err = json.Marshal(packagePlanDoc)
@@ -484,7 +483,11 @@ func PublishToMashery(user *ApiUser, appDir string, gatewayJSON string, host str
 				panic(err)
 			}
 
+			shortDelay()
+
 			p := CreateOrUpdatePackage(user, token, marshalledDoc, apiName, updated)
+
+			shortDelay()
 
 			key = CreateApplicationAndKey(user, token, p, apiName)
 
@@ -624,6 +627,8 @@ func CreateOrUpdateApi(user *ApiUser, token string, cleanedTfApiSwaggerDoc []byt
 		panic(err)
 	}
 
+	shortDelay()
+
 	var f [](interface{})
 	if err = json.Unmarshal([]byte(api), &f); err != nil {
 		panic(err)
@@ -712,6 +717,7 @@ func MatchingEndpoint(ep map[string]interface{}, epList []interface{}) bool {
 	}
 	return false
 }
+
 func mapify(i interface{}) (map[string]interface{}, bool) {
 	value := reflect.ValueOf(i)
 	if value.Kind() == reflect.Map {
@@ -738,6 +744,8 @@ func CreateOrUpdateIodocs(user *ApiUser, token string, cleanedTfIodocSwaggerDoc 
 	if err = json.Unmarshal([]byte(item), &f); err != nil {
 		panic(err)
 	}
+
+	shortDelay()
 
 	if len(f) == 0 {
 		s, err := user.Create(masheryObject, masheryObjectProperties, string(cleanedTfIodocSwaggerDoc), token)
