@@ -979,7 +979,7 @@ func GenerateExampleCall(endpoint map[string]interface{}, key string) string {
 	}
 	sig := ""
 	if endpoint["requestAuthenticationType"] == "apiKeyAndSecret_SHA256" {
-		sig = "&sig='$(php -r 'echo hash('sha256', '" + pk["apikey"].(string) + "'.'" + pk["secret"].(string) + "'.time());')"
+		sig = "&sig='$(php -r \"echo hash('sha256', '" + pk["apikey"].(string) + "'.'" + pk["secret"].(string) + "'.time());\")"
 	}
 	exampleCall = "curl -i -v -k -X " + strings.ToUpper(endpoint["supportedHttpMethods"].([]interface{})[0].(string)) + " '" + protocol + "://" + pd_map["address"].(string) + endpoint["requestPathAlias"].(string) + "?api_key=" + pk["apikey"].(string) + sig
 	return exampleCall
